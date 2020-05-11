@@ -26,7 +26,7 @@ let ram = [
   //   activeClkSpeed: '',
   // },
 ];
-const memory = { ram, totalMax: '', totalUsedMemSlots: '' };
+const memory = { ram, totalMax: '', installed: '' };
 
 const motherboard = {
   manufacturer: '',
@@ -162,88 +162,119 @@ function getMotherboardInfo() {
   });
 }
 //--- RAM -------------------------------------------------------------
-function getRamChipinfo() {
-  let ramChipData = [];
-  let ramDataObjArr = [];
-  let ramChipDataObj = {};
+getRamChipinfo = () => {
+  return new Promise((resolve, reject) => {
+    let ramChipData = [];
+    let ramDataObjArr = [];
+    let ramChipDataObj = {};
 
-  cmd.get('wmic memorychip get /Format: list', (err, data, stderr) => {
-    ramChipData = data.split('Attributes=');
-    //ramChipData = "Attributes=" hariç sonrasındaki herşeyi bir sonraki "Attributes="e kadar alıp
-    //yeni dizi yaptık
+    cmd.get('wmic memorychip get /Format: list', (err, data, stderr) => {
+      ramChipData = data.split('Attributes=');
+      //ramChipData = "Attributes=" hariç sonrasındaki herşeyi bir sonraki "Attributes="e kadar alıp
+      //yeni dizi yaptık
 
-    ramChipData = ramChipData.map((el) => 'Attributes=' + el);
-    //ramChipData'nın her elemanının başına sildiğimiz "Attributes=" ifadesini ekledik
+      ramChipData = ramChipData.map((el) => 'Attributes=' + el);
+      //ramChipData'nın her elemanının başına sildiğimiz "Attributes=" ifadesini ekledik
 
-    ramChipData = ramChipData.slice(1);
-    //ramChipData[0] çöp veri idi onu kesip attık
+      ramChipData = ramChipData.slice(1);
+      //ramChipData[0] çöp veri idi onu kesip attık
 
-    //console.log('ramChipData: ', ramChipData[1]);
-    //ramChipData içindeki elemanları tek tek item içine al ve işlem yap
-    ramChipData.forEach((item) => {
-      item = item.split('\n');
-      //ramChipData içindeki verileri satır satır böldük
+      //console.log('ramChipData: ', ramChipData[1]);
+      //ramChipData içindeki elemanları tek tek item içine al ve işlem yap
+      ramChipData.forEach((item) => {
+        item = item.split('\n');
+        //ramChipData içindeki verileri satır satır böldük
 
-      // boşluk, \r \n vs götürür (baştan ve sondan)
-      //alt iki kod birbirinin aynısı (tek satırda fonksiyon gibi return vs gerek yok)
-      // boşluk, \r \n vs götürür (baştan ve sondan)
-      item = item.map((el) => el.trim());
-      /*
-      item = item.map((el) => {
-        return el.trim();
+        // boşluk, \r \n vs götürür (baştan ve sondan)
+        //alt iki kod birbirinin aynısı (tek satırda fonksiyon gibi return vs gerek yok)
+        // boşluk, \r \n vs götürür (baştan ve sondan)
+        item = item.map((el) => el.trim());
+        /*
+        item = item.map((el) => {
+          return el.trim();
+        });
+        */
+
+        //alt iki kod birbirinin aynısı (tek satırda fonksiyon gibi return vs gerek yok)
+        //el (element) değeri boş değilse yeni diziye döndürür, boşsa (undefined) döndürmez
+        item = item.filter((el) => el);
+        /*
+        item = item.filter((el) => {
+          return el;
+        });
+        */
+
+        // item = [ "Attributes=2", ...... ]
+        item.forEach((el) => {
+          // el = "Attributes=2"
+          el = el.split('=');
+          // el = [ "Attribute", "2"]
+
+          ramChipDataObj[el[0]] = el[1];
+          //ramChipDataObj = { {Attribute: "2"}, {...} }
+        });
+
+        ramDataObjArr.push(ramChipDataObj);
       });
-      */
 
-      //alt iki kod birbirinin aynısı (tek satırda fonksiyon gibi return vs gerek yok)
-      //el (element) değeri boş değilse yeni diziye döndürür, boşsa (undefined) döndürmez
-      item = item.filter((el) => el);
-      /*
-      item = item.filter((el) => {
-        return el;
-      });
-      */
+      //console.log(ramDataObjArr);
 
-      // item = [ "Attributes=2", ...... ]
-      item.forEach((el) => {
-        // el = "Attributes=2"
-        el = el.split('=');
-        // el = [ "Attribute", "2"]
+      let temp;
 
-        ramChipDataObj[el[0]] = el[1];
-        //ramChipDataObj = { {Attribute: "2"}, {...} }
-      });
+      for (i = 0; i < infoPack.motherboard.ramUsedSockets; ++i) {
+        temp = Number(ramDataObjArr[i].Capacity) / 1073741824; //Bytes to Gigabytes
+        temp = String(temp + ' GB');
 
-      ramDataObjArr.push(ramChipDataObj);
+        infoPack.memory.ram.push({
+          slotNo: ramDataObjArr[i].BankLabel,
+          deviceLocator: ramDataObjArr[i].DeviceLocator,
+          manufacturer: ramDataObjArr[i].Manufacturer,
+          model: ramDataObjArr[i].PartNumber,
+          capacity: temp,
+          configuratedVoltage: ramDataObjArr[i].ConfiguredVoltage + ' mV',
+          configuratedClkSpeed: ramDataObjArr[i].ConfiguredClockSpeed + ' Mhz',
+          activeClkSpeed: ramDataObjArr[i].Speed + ' Mhz',
+        });
+      }
     });
 
-    //console.log(ramDataObjArr);
-
-    let temp;
-
-    for (i = 0; i < infoPack.motherboard.ramUsedSockets; ++i) {
-      temp = Number(ramDataObjArr[i].Capacity) / 1073741824; //Bytes to Gigabytes
-      temp = String(temp + ' GB');
-
-      infoPack.memory.ram.push({
-        slotNo: ramDataObjArr[i].BankLabel,
-        deviceLocator: ramDataObjArr[i].DeviceLocator,
-        manufacturer: ramDataObjArr[i].Manufacturer,
-        model: ramDataObjArr[i].PartNumber,
-        capacity: temp,
-        configuratedVoltage: ramDataObjArr[i].ConfiguredVoltage,
-        configuratedClkSpeed: ramDataObjArr[i].ConfiguredClockSpeed,
-        activeClkSpeed: ramDataObjArr[i].Speed,
-      });
-    }
+    resolve('success');
   });
-}
+};
+
+getMemoryInfo = async () => {
+  let temp;
+
+  try {
+    await getRamChipinfo();
+    console.log('BEKLE!');
+
+    cmd.get('wmic memphysical get MaxCapacity/value', (err, data, stderr) => {
+      infoPack.memory.totalMax = JSON.parse(JSON.stringify(data));
+      infoPack.memory.totalMax = findSubStr(infoPack.memory.totalMax);
+
+      temp = Number(infoPack.memory.totalMax) / 1048576;
+      infoPack.memory.totalMax = String(temp + ' GB');
+    });
+
+    temp = 0;
+    console.log('CAPACITY: ', infoPack.memory.ram[0].capacity);
+    // for (i = 0; i < infoPack.motherboard.ramUsedSockets; ++i) {
+    //   temp += Number(infoPack.memory.ram[i].capacity.replace(/ GB/g, ''));
+    // }
+    // console.log(temp);
+    // infoPack.memory.installed = String(temp);
+  } catch (err) {
+    console.log('Error: ', err);
+  }
+};
 
 getCpuInfo();
 getMotherboardInfo();
-getRamChipinfo();
+getMemoryInfo();
 
 setTimeout(() => {
-  //console.log(infoPack);
+  console.log(infoPack);
   console.log(infoPack.memory.ram);
 }, 1000);
 
