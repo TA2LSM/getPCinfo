@@ -14,7 +14,7 @@ const cpu = {
   socketType: '',
 };
 
-let ram = [
+let ramSlots = [
   // {
   //   slotNo: '',
   //   deviceLocator: '',
@@ -26,7 +26,7 @@ let ram = [
   //   activeClkSpeed: '',
   // },
 ];
-const memory = { ram, totalMax: '', installed: '' };
+const memory = { ram: ramSlots, totalMax: '', installed: '' };
 
 const motherboard = {
   manufacturer: '',
@@ -58,7 +58,6 @@ const infoPack = {
   memory,
   motherboard,
   os,
-  userName: '',
 };
 
 /*
@@ -164,6 +163,7 @@ function getMotherboardInfo() {
     infoPack.motherboard.ramUsedSockets = findSubStr(infoPack.motherboard.ramUsedSockets);
   });
 }
+
 //--- RAM -------------------------------------------------------------
 getRamChipinfo = () => {
   return new Promise((resolve, reject) => {
@@ -272,6 +272,7 @@ getMemoryInfo = async () => {
   }
 };
 
+//--- OS --------------------------------------------------------------
 getOSInfo = () => {
   let temp;
 
@@ -317,9 +318,12 @@ getOSInfo = () => {
     infoPack.os.computerName = JSON.parse(JSON.stringify(data));
     infoPack.os.computerName = findSubStr(infoPack.os.computerName);
   });
-  cmd.get('wmic computersystem get domain/value', (err, data, stderr) => {
+  cmd.get('wmic computersystem get UserName/value', (err, data, stderr) => {
     infoPack.os.userName = JSON.parse(JSON.stringify(data));
-    infoPack.os.userName = findSubStr(infoPack.os.userName);
+    infoPack.os.userName = findSubStr(infoPack.os.userName).replace(
+      infoPack.os.computerName + '\\',
+      ''
+    );
   });
   cmd.get('wmic os get FreePhysicalMemory/value', (err, data, stderr) => {
     infoPack.os.freeMemory = JSON.parse(JSON.stringify(data));
@@ -330,6 +334,7 @@ getOSInfo = () => {
   });
 };
 
+//---------------------------------------------------------------------
 getCpuInfo();
 getMotherboardInfo();
 getMemoryInfo();
