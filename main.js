@@ -42,12 +42,15 @@ const motherboard = {
 
 const os = {
   name: '',
+  architecture: '',
   buildNumber: '',
   serialNumber: '',
   skuNumber: '',
   uuid: '',
   installedDate: '',
   domain: '',
+  computerName: '',
+  freeMemory: '',
 };
 
 const infoPack = {
@@ -257,8 +260,8 @@ getMemoryInfo = async () => {
       infoPack.memory.totalMax = String(temp + ' GB');
     });
 
-    temp = 0;
-    console.log('CAPACITY: ', infoPack.memory.ram[0].capacity);
+    //temp = 0;
+    //console.log('CAPACITY: ', infoPack.memory.ram[0].capacity);
     // for (i = 0; i < infoPack.motherboard.ramUsedSockets; ++i) {
     //   temp += Number(infoPack.memory.ram[i].capacity.replace(/ GB/g, ''));
     // }
@@ -269,13 +272,72 @@ getMemoryInfo = async () => {
   }
 };
 
+getOSInfo = () => {
+  let temp;
+
+  cmd.get('wmic os get Caption/value', (err, data, stderr) => {
+    infoPack.os.name = JSON.parse(JSON.stringify(data));
+    infoPack.os.name = findSubStr(infoPack.os.name);
+  });
+  cmd.get('wmic os get OSArchitecture/value', (err, data, stderr) => {
+    infoPack.os.architecture = JSON.parse(JSON.stringify(data));
+    infoPack.os.architecture = findSubStr(infoPack.os.architecture);
+  });
+  cmd.get('wmic os get Buildnumber/value', (err, data, stderr) => {
+    infoPack.os.buildNumber = JSON.parse(JSON.stringify(data));
+    infoPack.os.buildNumber = findSubStr(infoPack.os.buildNumber);
+  });
+  cmd.get('wmic os get SerialNumber/value', (err, data, stderr) => {
+    infoPack.os.serialNumber = JSON.parse(JSON.stringify(data));
+    infoPack.os.serialNumber = findSubStr(infoPack.os.serialNumber);
+  });
+  cmd.get('wmic os get InstallDate/value', (err, data, stderr) => {
+    temp = JSON.parse(JSON.stringify(data));
+    temp = findSubStr(temp);
+
+    infoPack.os.installedDate = temp.slice(6, 8);
+    infoPack.os.installedDate += '.' + temp.slice(4, 6);
+    infoPack.os.installedDate += '.' + temp.slice(0, 4);
+    infoPack.os.installedDate +=
+      ' / ' + temp.slice(8, 10) + ':' + temp.slice(10, 12) + '.' + temp.slice(12, 14);
+  });
+  cmd.get('wmic csproduct get SKUNumber/value', (err, data, stderr) => {
+    infoPack.os.skuNumber = JSON.parse(JSON.stringify(data));
+    infoPack.os.skuNumber = findSubStr(infoPack.os.skuNumber);
+  });
+  cmd.get('wmic csproduct get UUID/value', (err, data, stderr) => {
+    infoPack.os.uuid = JSON.parse(JSON.stringify(data));
+    infoPack.os.uuid = findSubStr(infoPack.os.uuid);
+  });
+  cmd.get('wmic computersystem get domain/value', (err, data, stderr) => {
+    infoPack.os.domain = JSON.parse(JSON.stringify(data));
+    infoPack.os.domain = findSubStr(infoPack.os.domain);
+  });
+  cmd.get('wmic os get CSName/value', (err, data, stderr) => {
+    infoPack.os.computerName = JSON.parse(JSON.stringify(data));
+    infoPack.os.computerName = findSubStr(infoPack.os.computerName);
+  });
+  cmd.get('wmic computersystem get domain/value', (err, data, stderr) => {
+    infoPack.os.userName = JSON.parse(JSON.stringify(data));
+    infoPack.os.userName = findSubStr(infoPack.os.userName);
+  });
+  cmd.get('wmic os get FreePhysicalMemory/value', (err, data, stderr) => {
+    infoPack.os.freeMemory = JSON.parse(JSON.stringify(data));
+    infoPack.os.freeMemory = findSubStr(infoPack.os.freeMemory);
+
+    temp = (Number(infoPack.os.freeMemory) / 1048576).toFixed(2);
+    infoPack.os.freeMemory = String(temp + ' GB');
+  });
+};
+
 getCpuInfo();
 getMotherboardInfo();
 getMemoryInfo();
+getOSInfo();
 
 setTimeout(() => {
   console.log(infoPack);
-  console.log(infoPack.memory.ram);
+  //console.log(infoPack.memory.ram);
 }, 1000);
 
 /*
