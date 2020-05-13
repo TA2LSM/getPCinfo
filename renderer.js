@@ -7,14 +7,7 @@
 
 const { ipcRenderer } = require('electron');
 
-let cnt = 0;
-//
 document.getElementById('startBtn').onclick = () => {
-  //   setInterval(() => {
-  //     document.getElementById("counter").innerText = cnt++;
-  //     console.log(cnt);
-  //   }, 1000);
-
   //console.log('Process started...');
   ipcRenderer.send('processStarted', 'ping');
 
@@ -54,10 +47,53 @@ ipcRenderer.on('memoryInfoNeeded', (event, arg) => {
   document.getElementById('t_memFree').innerText = arg.freeMemory;
 
   //how to add all slot's of ram infor here?
+  document.getElementById('t_ram0SlotNo').innerText = arg.ramSlots[0].slotNo + ' / ';
+  document.getElementById('t_ram0Channel').innerText = arg.ramSlots[0].deviceLocator + ' / ';
+  document.getElementById('t_ram0Manufacturer').innerText = arg.ramSlots[0].manufacturer + ' / ';
+  document.getElementById('t_ram0Model').innerText = arg.ramSlots[0].model + ' / ';
+  document.getElementById('t_ram0Capacity').innerText = arg.ramSlots[0].capacity + ' / ';
+  document.getElementById('t_ram0ConfVoltage').innerText =
+    arg.ramSlots[0].configuratedVoltage + ' / ';
+  document.getElementById('t_ram0ConfSpeed').innerText =
+    arg.ramSlots[0].configuratedClkSpeed + ' / ';
+  document.getElementById('t_ram0ActSpeed').innerText = arg.ramSlots[0].activeClkSpeed;
+
+  document.getElementById('t_ram1SlotNo').innerText = arg.ramSlots[1].slotNo + ' / ';
+  document.getElementById('t_ram1Channel').innerText = arg.ramSlots[1].deviceLocator + ' / ';
+  document.getElementById('t_ram1Manufacturer').innerText = arg.ramSlots[1].manufacturer + ' / ';
+  document.getElementById('t_ram1Model').innerText = arg.ramSlots[1].model + ' / ';
+  document.getElementById('t_ram1Capacity').innerText = arg.ramSlots[1].capacity + ' / ';
+  document.getElementById('t_ram1ConfVoltage').innerText =
+    arg.ramSlots[1].configuratedVoltage + ' / ';
+  document.getElementById('t_ram1ConfSpeed').innerText =
+    arg.ramSlots[1].configuratedClkSpeed + ' / ';
+  document.getElementById('t_ram1ActSpeed').innerText = arg.ramSlots[1].activeClkSpeed;
+
+  document.getElementById('t_ram2SlotNo').innerText = arg.ramSlots[2].slotNo + ' / ';
+  document.getElementById('t_ram2Channel').innerText = arg.ramSlots[2].deviceLocator + ' / ';
+  document.getElementById('t_ram2Manufacturer').innerText = arg.ramSlots[2].manufacturer + ' / ';
+  document.getElementById('t_ram2Model').innerText = arg.ramSlots[2].model + ' / ';
+  document.getElementById('t_ram2Capacity').innerText = arg.ramSlots[2].capacity + ' / ';
+  document.getElementById('t_ram2ConfVoltage').innerText =
+    arg.ramSlots[2].configuratedVoltage + ' / ';
+  document.getElementById('t_ram2ConfSpeed').innerText =
+    arg.ramSlots[2].configuratedClkSpeed + ' / ';
+  document.getElementById('t_ram2ActSpeed').innerText = arg.ramSlots[2].activeClkSpeed;
+
+  document.getElementById('t_ram3SlotNo').innerText = arg.ramSlots[3].slotNo + ' / ';
+  document.getElementById('t_ram3Channel').innerText = arg.ramSlots[3].deviceLocator + ' / ';
+  document.getElementById('t_ram3Manufacturer').innerText = arg.ramSlots[3].manufacturer + ' / ';
+  document.getElementById('t_ram3Model').innerText = arg.ramSlots[3].model + ' / ';
+  document.getElementById('t_ram3Capacity').innerText = arg.ramSlots[3].capacity + ' / ';
+  document.getElementById('t_ram3ConfVoltage').innerText =
+    arg.ramSlots[3].configuratedVoltage + ' / ';
+  document.getElementById('t_ram3ConfSpeed').innerText =
+    arg.ramSlots[3].configuratedClkSpeed + ' / ';
+  document.getElementById('t_ram3ActSpeed').innerText = arg.ramSlots[3].activeClkSpeed;
 });
 
-ipcRenderer.on('memoryFreeInfoNeeded', (event, arg) => {
-  // could change every moments so must be shown dynamic
+// These values here could change every moments so must be shown dynamic
+ipcRenderer.on('dynamicSystemInfoNeeded', (event, arg) => {
   document.getElementById('t_memFree').innerText = arg.freeMemory;
 });
 
@@ -72,3 +108,8 @@ ipcRenderer.on('osInfoNeeded', (event, arg) => {
   document.getElementById('t_osDomain').innerText = arg.domain;
   document.getElementById('t_osComputerName').innerText = arg.computerName;
 });
+
+//--- Periodic update for dynamic variables ----------------
+setInterval(() => {
+  ipcRenderer.send('processContinue', 'ping');
+}, 1000);
