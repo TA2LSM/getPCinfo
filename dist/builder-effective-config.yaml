@@ -1,5 +1,0 @@
-directories:
-  output: dist
-  buildResources: build
-appId: com.electron.pcInfo
-electronVersion: 8.2.5
