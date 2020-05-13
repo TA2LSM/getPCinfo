@@ -26,7 +26,7 @@ let ramSlots = [
   //   activeClkSpeed: '',
   // },
 ];
-const memory = { ramSlots, totalMax: '', installed: '' };
+const memory = { ramSlots, totalMax: '', installed: '', freeMemory: '' };
 
 const motherboard = {
   manufacturer: '',
@@ -36,7 +36,7 @@ const motherboard = {
   biosManufacturer: '',
   biosModel: '',
   biosVersion: '',
-  ramUsedSockets: '',
+  usedRamSockets: '',
   //ramAvailableSockets: '',
 };
 
@@ -50,7 +50,6 @@ const os = {
   installedDate: '',
   domain: '',
   computerName: '',
-  freeMemory: '',
 };
 
 const infoPack = {
@@ -164,8 +163,8 @@ const getMotherboardInfo = async () => {
       infoPack.motherboard.biosVersion = findSubStr(infoPack.motherboard.biosVersion);
     });
     cmd.get('wmic memphysical get MemoryDevices/value', (err, data, stderr) => {
-      infoPack.motherboard.ramUsedSockets = JSON.parse(JSON.stringify(data));
-      infoPack.motherboard.ramUsedSockets = findSubStr(infoPack.motherboard.ramUsedSockets);
+      infoPack.motherboard.usedRamSockets = JSON.parse(JSON.stringify(data));
+      infoPack.motherboard.usedRamSockets = findSubStr(infoPack.motherboard.usedRamSockets);
 
       resolve('success');
     });
@@ -239,7 +238,7 @@ const getRamChipinfo = () => {
       });
 
       //console.log(ramDataObjArr);
-      for (i = 0; i < Number(infoPack.motherboard.ramUsedSockets); ++i) {
+      for (i = 0; i < Number(infoPack.motherboard.usedRamSockets); ++i) {
         temp = (Number(ramDataObjArr[i].Capacity) / 1073741824).toFixed(2); //Bytes to Gigabytes
         temp = String(temp + ' GB');
 
@@ -262,14 +261,29 @@ const getRamChipinfo = () => {
   });
 };
 
+const getFreeMemory = () => {
+  return new Promise((resolve, reject) => {
+    cmd.get('wmic os get FreePhysicalMemory/value', (err, data, stderr) => {
+      infoPack.memory.freeMemory = JSON.parse(JSON.stringify(data));
+      infoPack.memory.freeMemory = findSubStr(infoPack.memory.freeMemory);
+
+      temp = (Number(infoPack.memory.freeMemory) / 1048576).toFixed(2);
+      infoPack.memory.freeMemory = String(temp + ' GB');
+
+      resolve('success');
+    });
+  });
+};
+
 const getMemoryInfo = async () => {
   let i, temp;
 
   try {
     await getRamChipinfo();
+    await getFreeMemory();
 
     temp = 0;
-    for (i = 0; i < Number(infoPack.motherboard.ramUsedSockets); ++i) {
+    for (i = 0; i < Number(infoPack.motherboard.usedRamSockets); ++i) {
       temp += Number(infoPack.memory.ramSlots[i].capacity.replace(' GB', ''));
     }
 
@@ -334,13 +348,6 @@ const getOSInfo = () => {
         infoPack.os.computerName + '\\',
         ''
       );
-    });
-    cmd.get('wmic os get FreePhysicalMemory/value', (err, data, stderr) => {
-      infoPack.os.freeMemory = JSON.parse(JSON.stringify(data));
-      infoPack.os.freeMemory = findSubStr(infoPack.os.freeMemory);
-
-      temp = (Number(infoPack.os.freeMemory) / 1048576).toFixed(2);
-      infoPack.os.freeMemory = String(temp + ' GB');
 
       resolve('success');
     });
@@ -349,7 +356,7 @@ const getOSInfo = () => {
 
 //---------------------------------------------------------------------
 const startProcess = async () => {
-  console.log('Please wait...');
+  console.log('Initializing please wait...');
 
   try {
     await getCpuInfo();
@@ -360,14 +367,16 @@ const startProcess = async () => {
     //console.log(infoPack);
     //console.log(infoPack.memory.ramSlots);
     //console.log(infoPack.memory.totalMax);
+
+    setInterval(() => {
+      getFreeMemory();
+      console.log('Free RAM: ', infoPack.memory.freeMemory);
+      //event.reply('dynamicSystemInfoNeeded', infoPack.memory);
+    }, 1000);
+    //---------------------------------------------------------------
   } catch (err) {
     console.log('Error: ', err);
   }
-
-  // setTimeout(() => {
-  //   console.log(infoPack);
-  //   //console.log(infoPack.memory.ramSlots);
-  // }, 1000);
 };
 
 startProcess();
@@ -411,11 +420,9 @@ app.on('activate', function () {
 //--- Monitoring Codes -----------------------------------------------
 ipcMain.on('processStarted', (event, arg) => {
   event.reply('cpuInfoNeeded', infoPack.cpu);
-
-  // cmd.get('wmic cpu get caption', (err, data, stderr) => {
-  //   infoPack.cpu.name = data;
-  //   event.reply('processStarted', infoPack.cpu.name);
-  // });
+  event.reply('motherboardInfoNeeded', infoPack.motherboard);
+  event.reply('memoryInfoNeeded', infoPack.memory);
+  event.reply('osInfoNeeded', infoPack.os);
 });
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
