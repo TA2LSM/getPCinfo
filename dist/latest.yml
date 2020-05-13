@@ -1,0 +1,8 @@
+version: 1.0.0
+files:
+  - url: get-pc-info-Setup-1.0.0.exe
+    sha512: pMny7t0MD7tsFStJJC53CZivbd3plhnbK5qYbNL2yt/yxGWAIUH6jyD0qhAUBoctvoUwgiIbM+Sp8TwSYuOfEQ==
+    size: 49831164
+path: get-pc-info-Setup-1.0.0.exe
+sha512: pMny7t0MD7tsFStJJC53CZivbd3plhnbK5qYbNL2yt/yxGWAIUH6jyD0qhAUBoctvoUwgiIbM+Sp8TwSYuOfEQ==
+releaseDate: '2020-05-13T12:44:14.566Z'
