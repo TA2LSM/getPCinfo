@@ -1,6 +1,6 @@
 // Modules to control application life and create native browser window
-//const { app, BrowserWindow, ipcMain } = require('electron');
-//const path = require('path');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
 const cmd = require('node-cmd');
 
 const cpu = {
@@ -357,8 +357,8 @@ const startProcess = async () => {
     await getMotherboardInfo();
     await getMemoryInfo();
 
-    console.log(infoPack);
-    console.log(infoPack.memory.ramSlots);
+    //console.log(infoPack);
+    //console.log(infoPack.memory.ramSlots);
     //console.log(infoPack.memory.totalMax);
   } catch (err) {
     console.log('Error: ', err);
@@ -372,7 +372,6 @@ const startProcess = async () => {
 
 startProcess();
 
-/*
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -396,7 +395,6 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(createWindow);
 
-
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
@@ -410,17 +408,14 @@ app.on('activate', function () {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
-ipcMain.on('parameter', (event, arg) => {
-  // cmd.get("wmic cpu get caption", function (err, data, stderr) {
-  //   console.log("parameter :\n\n", data);
-  // });
-  //console.log("HERE!");
+//--- Monitoring Codes -----------------------------------------------
+ipcMain.on('processStarted', (event, arg) => {
+  event.reply('cpuInfoNeeded', infoPack.cpu);
 
-  cmd.get('wmic cpu get caption', (err, data, stderr) => {
-    infoPack.cpu.name = data;
-    event.reply('parameter', infoPack.cpu.name);
-  });
+  // cmd.get('wmic cpu get caption', (err, data, stderr) => {
+  //   infoPack.cpu.name = data;
+  //   event.reply('processStarted', infoPack.cpu.name);
+  // });
 });
-*/
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

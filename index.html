@@ -3,23 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <title>Hello World!</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+    <title>getPCinfo</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
+    <h1>PC Information and Monitoring</h1>
     <button id="startBtn">Başlat</button>
+
+    <div><br /></div>
+    <div>==================</div>
+    <div>1. CPU INFORMATION</div>
+    <div>==================</div>
     <div>
-      Parameter:
-      <span id="counter">N/A</span>
+      Name:
+      <span id="t_CpuName">N/A</span>
     </div>
+    <div>
+      L2 Cache Size:
+      <span id="t_L2CacheSize">N/A</span>
+    </div>
+    <div>
+      L3 Cache Size:
+      <span id="t_L3CacheSize">N/A</span>
+    </div>
+    <div><br /></div>
+    <!--1 satır boşluk bıraktık-->
+    <div>============================</div>
+    <div>2. MOTHERBOARD INFORMATION</div>
+    <div>============================</div>
 
     <!-- We are using Node.js <span id="node-version"></span>, Chromium
     <span id="chrome-version"></span>, and Electron
